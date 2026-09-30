@@ -22,82 +22,69 @@ public_users.post("/register", (req,res) => {
 });
 
 // Get the book list available in the shop
-public_users.get('/',function (req, res) {
-  //Write your code here
-  const getBooks = new Promise((resolve, reject) => {
-    resolve(books);
-  });
-
-  getBooks.then((bookList) => {
-    return res.status(200).json(bookList);
-  }).catch((err) => {
-    return res.status(500).json({ message: "Error fetching books" });
-  });
+public_users.get('/', async function (req, res) {
+    try {
+      // Simulating asynchronous retrieval with Promise / Axios
+      const getBooks = () => new Promise((resolve) => resolve(books));
+      const bookList = await getBooks();
+      return res.status(200).json(bookList);
+    } catch (error) {
+      return res.status(500).json({ message: "Error fetching book list" });
+    }
 });
 
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
-  //Write your code here
-  const isbn = req.params.isbn;
-  const getBook = new Promise((resolve, reject) => {
-    if (books[isbn]) {
-      resolve(books[isbn]);
-    } else {
-      reject("Book not found");
-    }
-  });
-
-  getBook
-    .then((book) => res.status(200).json(book))
-    .catch((err) => res.status(404).json({ message: err }));
+public_users.get('/isbn/:isbn', function (req, res) {
+    const isbn = req.params.isbn;
+    const getBookByISBN = new Promise((resolve, reject) => {
+      if (books[isbn]) {
+        resolve(books[isbn]);
+      } else {
+        reject(`No book found with ISBN: ${isbn}`);
+      }
+    });
+  
+    getBookByISBN
+      .then((book) => res.status(200).json(book))
+      .catch((err) => res.status(404).json({ message: err }));
 });
   
 // Get book details based on author
-public_users.get('/author/:author',function (req, res) {
-  //Write your code here
-  const author = req.params.author;
-  const getBooksByAuthor = new Promise((resolve, reject) => {
-    const matchingBooks = [];
-    const keys = Object.keys(books);
-    keys.forEach((key) => {
-      if (books[key].author.toLowerCase() === author.toLowerCase()) {
-        matchingBooks.push(books[key]);
+public_users.get('/author/:author', function (req, res) {
+    const author = req.params.author;
+    const getBooksByAuthor = new Promise((resolve, reject) => {
+      const matchingBooks = Object.values(books).filter(
+        (b) => b.author.toLowerCase() === author.toLowerCase()
+      );
+      if (matchingBooks.length > 0) {
+        resolve(matchingBooks);
+      } else {
+        reject(`No books found for author: ${author}`);
       }
     });
-    if (matchingBooks.length > 0) {
-      resolve(matchingBooks);
-    } else {
-      reject("No books found for this author");
-    }
-  });
-
-  getBooksByAuthor
-    .then((booksList) => res.status(200).json(booksList))
-    .catch((err) => res.status(404).json({ message: err }));
+  
+    getBooksByAuthor
+      .then((booksList) => res.status(200).json(booksList))
+      .catch((err) => res.status(404).json({ message: err }));
 });
 
 // Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-  //Write your code here
-  const title = req.params.title;
-  const getBooksByTitle = new Promise((resolve, reject) => {
-    const matchingBooks = [];
-    const keys = Object.keys(books);
-    keys.forEach((key) => {
-      if (books[key].title.toLowerCase() === title.toLowerCase()) {
-        matchingBooks.push(books[key]);
+public_users.get('/title/:title', function (req, res) {
+    const title = req.params.title;
+    const getBooksByTitle = new Promise((resolve, reject) => {
+      const matchingBooks = Object.values(books).filter(
+        (b) => b.title.toLowerCase() === title.toLowerCase()
+      );
+      if (matchingBooks.length > 0) {
+        resolve(matchingBooks);
+      } else {
+        reject(`No books found with title: ${title}`);
       }
     });
-    if (matchingBooks.length > 0) {
-      resolve(matchingBooks);
-    } else {
-      reject("No books found with this title");
-    }
-  });
-
-  getBooksByTitle
-    .then((booksList) => res.status(200).json(booksList))
-    .catch((err) => res.status(404).json({ message: err }));
+  
+    getBooksByTitle
+      .then((booksList) => res.status(200).json(booksList))
+      .catch((err) => res.status(404).json({ message: err }));
 });
 
 //  Get book review
